@@ -4,39 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dynamic Quote Generator</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #quoteDisplay { margin: 20px 0; font-size: 1.2em; }
-    #sync-status { margin-top: 10px; font-weight: bold; }
-    button { margin: 5px; }
-  </style>
 </head>
 <body>
-
   <h1>Dynamic Quote Generator</h1>
 
   <!-- Quote Display -->
   <div id="quoteDisplay"></div>
-
-  <!-- Category Filter -->
-  <select id="categoryFilter" onchange="filterQuotes()">
-    <option value="all">All Categories</option>
-  </select>
-
-  <!-- Buttons -->
-  <div>
-    <button onclick="showRandomQuote()">Show Random Quote</button>
-    <button onclick="createAddQuoteForm()">Add New Quote</button>
-    <button onclick="exportToJsonFile()">Export Quotes</button>
-    <button onclick="syncQuotes()">Sync with Server</button>
-    <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
-  </div>
+  <button id="newQuote">Show New Quote</button>
 
   <!-- Add Quote Form -->
-  <div id="addQuoteForm"></div>
+  <div>
+    <input id="newQuoteText" type="text" placeholder="Enter a new quote" />
+    <input id="newQuoteCategory" type="text" placeholder="Enter quote category" />
+    <button id="addQuoteBtn">Add Quote</button>
+  </div>
 
-  <!-- Status / Notifications -->
-  <div id="sync-status"></div>
+  <!-- Category Filter -->
+  <div>
+    <label for="categoryFilter">Filter by category:</label>
+    <select id="categoryFilter"></select>
+  </div>
+
+  <!-- JSON Import/Export -->
+  <div>
+    <button id="exportBtn">Export Quotes (JSON)</button>
+    <input type="file" id="importFile" accept=".json" />
+  </div>
+
+  <!-- Notifications -->
+  <div id="notifications" style="color: green; margin-top:10px;"></div>
 
   <script src="script.js"></script>
 </body>
