@@ -7,13 +7,19 @@
     body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
     .quote-text { font-size: 1.3em; color: #333; }
     .quote-category { color: #666; font-style: italic; }
-    button { margin: 5px; padding: 8px 16px; }
+    button, select { margin: 5px; padding: 8px 16px; }
   </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
+  
+  <label for="categoryFilter"><strong>Filter by Category:</strong></label>
+  <select id="categoryFilter" onchange="filterQuotes()">
+    <option value="all">All Categories</option>
+  </select>
   <div id="quote-container"></div>
   <div id="form-container"></div>
+
   <div style="margin-top:20px;">
     <button id="newQuote">Show New Quote</button>
     <button id="add-btn">Add New Quote</button>
