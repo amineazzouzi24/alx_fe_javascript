@@ -79,8 +79,9 @@ function importFromJsonFile(event) {
 document.addEventListener("DOMContentLoaded", () => {
   loadQuotes();
   showRandomQuote();
-
-  document.getElementById("random-btn").addEventListener("click", showRandomQuote);
+  document.getElementById("newQuote").addEventListener("click", showRandomQuote);
   document.getElementById("add-btn").addEventListener("click", createAddQuoteForm);
   document.getElementById("export-btn").addEventListener("click", exportToJsonFile);
 });
+
+
