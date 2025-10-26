@@ -1,8 +1,3 @@
-// ======================
-// Dynamic Quote Generator v4
-// Adds Category Filtering
-// ======================
-
 let quotes = [];
 
 // ===== Local Storage =====
@@ -163,3 +158,4 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("add-btn").addEventListener("click", createAddQuoteForm);
   document.getElementById("export-btn").addEventListener("click", exportToJsonFile);
 });
+
