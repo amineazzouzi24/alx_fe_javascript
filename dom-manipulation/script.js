@@ -1,3 +1,6 @@
+// Mock server URL (you can replace with a real endpoint)
+const MOCK_API_URL = "https://mockapi.io/projects/YOUR_PROJECT_ID/quotes";
+
 // Initialize quotes array
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [
   { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
@@ -7,7 +10,14 @@ let quotes = JSON.parse(localStorage.getItem('quotes')) || [
 // Load last selected category
 let selectedCategory = localStorage.getItem('selectedCategory') || 'all';
 
-// Show random quote
+// UI notifications
+function showNotification(message) {
+  alert(message); // Simple alert; you can replace with fancier UI
+}
+
+// -------------------------
+// QUOTE DISPLAY & FILTER
+// -------------------------
 function showRandomQuote() {
   const filteredQuotes = selectedCategory === 'all' 
     ? quotes 
@@ -22,17 +32,13 @@ function showRandomQuote() {
   document.getElementById('quoteDisplay').textContent = randomQuote.text;
 }
 
-// Save quotes to localStorage
 function saveQuotes() {
   localStorage.setItem('quotes', JSON.stringify(quotes));
 }
 
-// Populate category dropdown
 function populateCategories() {
   const filter = document.getElementById('categoryFilter');
   const categories = [...new Set(quotes.map(q => q.category))];
-  
-  // Clear existing options except 'All Categories'
   filter.innerHTML = '<option value="all">All Categories</option>';
   categories.forEach(cat => {
     const option = document.createElement('option');
@@ -40,11 +46,9 @@ function populateCategories() {
     option.textContent = cat;
     filter.appendChild(option);
   });
-
   filter.value = selectedCategory;
 }
 
-// Filter quotes based on category
 function filterQuotes() {
   const filter = document.getElementById('categoryFilter');
   selectedCategory = filter.value;
@@ -52,7 +56,9 @@ function filterQuotes() {
   showRandomQuote();
 }
 
-// Add a new quote
+// -------------------------
+// ADD QUOTE
+// -------------------------
 function addQuote() {
   const textInput = document.getElementById('newQuoteText');
   const categoryInput = document.getElementById('newQuoteCategory');
@@ -72,9 +78,11 @@ function addQuote() {
 
   textInput.value = '';
   categoryInput.value = '';
+
+  // Post to server
+  postQuoteToServer(newQuote);
 }
 
-// Dynamically create the add quote form
 function createAddQuoteForm() {
   const container = document.getElementById('addQuoteFormContainer');
   container.innerHTML = `
@@ -84,7 +92,9 @@ function createAddQuoteForm() {
   `;
 }
 
-// Export quotes to JSON
+// -------------------------
+// IMPORT / EXPORT JSON
+// -------------------------
 function exportToJsonFile() {
   const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -95,7 +105,6 @@ function exportToJsonFile() {
   URL.revokeObjectURL(url);
 }
 
-// Import quotes from JSON
 function importFromJsonFile(event) {
   const fileReader = new FileReader();
   fileReader.onload = function(e) {
@@ -105,7 +114,7 @@ function importFromJsonFile(event) {
       saveQuotes();
       populateCategories();
       showRandomQuote();
-      alert('Quotes imported successfully!');
+      showNotification('Quotes imported successfully!');
     } catch (err) {
       alert('Invalid JSON file.');
     }
@@ -113,7 +122,67 @@ function importFromJsonFile(event) {
   fileReader.readAsText(event.target.files[0]);
 }
 
-// Initialize the app
+// -------------------------
+// SERVER SYNC
+// -------------------------
+
+// Fetch all quotes from server
+async function fetchQuotesFromServer() {
+  try {
+    const res = await fetch(MOCK_API_URL);
+    if (!res.ok) throw new Error('Failed to fetch quotes');
+    const serverQuotes = await res.json();
+    return serverQuotes;
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+// Post a new quote to server
+async function postQuoteToServer(quote) {
+  try {
+    const res = await fetch(MOCK_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(quote)
+    });
+    if (!res.ok) throw new Error('Failed to post quote');
+    showNotification('Quote synced to server!');
+  } catch (err) {
+    console.error(err);
+    showNotification('Failed to sync quote to server.');
+  }
+}
+
+// Sync local quotes with server periodically
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+
+  // Merge server quotes with local quotes
+  let newQuotesCount = 0;
+  serverQuotes.forEach(sq => {
+    const exists = quotes.some(lq => lq.text === sq.text && lq.category === sq.category);
+    if (!exists) {
+      quotes.push(sq);
+      newQuotesCount++;
+    }
+  });
+
+  if (newQuotesCount > 0) {
+    saveQuotes();
+    populateCategories();
+    showRandomQuote();
+    showNotification(`${newQuotesCount} new quote(s) fetched from server.`);
+  }
+}
+
+// Start periodic sync every 60 seconds
+setInterval(syncQuotes, 60000);
+
+// -------------------------
+// INITIALIZE APP
+// -------------------------
 document.getElementById('newQuote').addEventListener('click', showRandomQuote);
 createAddQuoteForm();
 populateCategories();
