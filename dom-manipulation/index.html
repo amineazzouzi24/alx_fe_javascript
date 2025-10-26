@@ -27,13 +27,15 @@
 
   <!-- JSON Import/Export -->
   <div>
-    <button id="exportBtn">Export Quotes (JSON)</button>
-    <input type="file" id="importFile" accept=".json" />
-  </div>
+  <button onclick="exportToJsonFile()">Export Quotes as JSON</button>
+  <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
+</div>
 
   <!-- Notifications -->
   <div id="notifications" style="color: green; margin-top:10px;"></div>
+  
 
   <script src="script.js"></script>
 </body>
 </html>
+
