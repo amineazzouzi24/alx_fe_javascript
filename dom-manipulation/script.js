@@ -1,10 +1,9 @@
 // ===============================
-// Dynamic Quote Generator v6
-// With Server Sync & Conflict Handling
+// Dynamic Quote Generator with Server Sync & Conflict Handling
 // ===============================
 
 let quotes = [];
-const SERVER_URL = "https://jsonplaceholder.typicode.com/posts"; // mock API for simulation
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts"; // mock API simulation
 
 // ===== Local Storage =====
 function saveQuotes() {
@@ -117,6 +116,7 @@ function createAddQuoteForm() {
     quotes.push(newQuote);
     saveQuotes();
     populateCategories();
+    filterQuote();
     alert("Quote added successfully!");
     form.reset();
   });
@@ -145,6 +145,7 @@ function importFromJsonFile(event) {
         quotes.push(...imported);
         saveQuotes();
         populateCategories();
+        filterQuote();
         alert("Quotes imported successfully!");
       } else {
         alert("Invalid JSON file.");
@@ -156,40 +157,95 @@ function importFromJsonFile(event) {
   reader.readAsText(event.target.files[0]);
 }
 
-// ===== Server Sync Simulation =====
-async function syncWithServer() {
-  const status = document.getElementById("sync-status");
-  status.textContent = "Syncing with server...";
-  status.style.color = "blue";
+// ===== Server Interaction =====
 
+// Fetch quotes from server (mock API)
+async function fetchQuotesFromServer() {
   try {
-    // Simulate fetch from server
     const response = await fetch(SERVER_URL);
-    const serverData = await response.json();
+    if (!response.ok) throw new Error("Network response not ok");
+    const data = await response.json();
 
-    // Convert mock data into compatible quotes
-    const serverQuotes = serverData.slice(0, 5).map(item => ({
+    // Convert mock data format to our quote format
+    return data.slice(0, 5).map(item => ({
       id: item.id,
       text: item.title,
       category: "Server",
       updatedAt: Date.now()
     }));
+  } catch (error) {
+    console.error("Failed to fetch from server:", error);
+    return [];
+  }
+}
 
-    // Conflict resolution: Server takes precedence
-    const merged = [...quotes];
-    serverQuotes.forEach(sq => {
-      const index = merged.findIndex(q => q.id === sq.id);
-      if (index === -1) merged.push(sq);
-      else merged[index] = sq; // server overrides
-    });
+// Post local quotes to server (mock)
+async function postQuotesToServer(newQuotes) {
+  try {
+    // In a real app, you'd POST to your API.
+    // Here we simulate with JSONPlaceholder POST request.
+    const responses = await Promise.all(newQuotes.map(q => 
+      fetch(SERVER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(q)
+      })
+    ));
+    return responses.every(res => res.ok);
+  } catch (error) {
+    console.error("Failed to post to server:", error);
+    return false;
+  }
+}
 
-    quotes = merged;
+// Sync local quotes with server
+async function syncQuotes() {
+  const status = document.getElementById("sync-status");
+  status.textContent = "Syncing with server...";
+  status.style.color = "blue";
+
+  try {
+    // Step 1: Fetch server quotes
+    const serverQuotes = await fetchQuotesFromServer();
+
+    // Step 2: Resolve conflicts - server takes precedence
+    // We'll merge quotes by ID:
+    // - If server quote exists, overwrite local.
+    // - Add new server quotes not in local.
+    // - Keep local quotes not on server as-is.
+
+    const mergedQuotesMap = new Map();
+
+    // Add local quotes first
+    quotes.forEach(q => mergedQuotesMap.set(q.id, q));
+
+    // Overwrite or add server quotes
+    serverQuotes.forEach(sq => mergedQuotesMap.set(sq.id, sq));
+
+    // Create merged array
+    const mergedQuotes = Array.from(mergedQuotesMap.values());
+
+    // Step 3: Find new local quotes (not on server) and POST them
+    const serverIds = new Set(serverQuotes.map(q => q.id));
+    const newLocalQuotes = quotes.filter(q => !serverIds.has(q.id));
+
+    if (newLocalQuotes.length > 0) {
+      const postSuccess = await postQuotesToServer(newLocalQuotes);
+      if (!postSuccess) {
+        status.textContent = "Sync partial: failed to upload local changes";
+        status.style.color = "orange";
+      }
+    }
+
+    // Step 4: Save merged data locally and update UI
+    quotes = mergedQuotes;
     saveQuotes();
     populateCategories();
     filterQuote();
 
     status.textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
     status.style.color = "green";
+
   } catch (error) {
     status.textContent = "Sync failed!";
     status.style.color = "red";
@@ -206,8 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("newQuote").addEventListener("click", showRandomQuote);
   document.getElementById("add-btn").addEventListener("click", createAddQuoteForm);
   document.getElementById("export-btn").addEventListener("click", exportToJsonFile);
-  document.getElementById("sync-btn").addEventListener("click", syncWithServer);
+  document.getElementById("sync-btn").addEventListener("click", syncQuotes);
 
   // Auto sync every 60 seconds
-  setInterval(syncWithServer, 60000);
+  setInterval(syncQuotes, 60000);
 });
