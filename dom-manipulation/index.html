@@ -5,21 +5,28 @@
   <title>Dynamic Quote Generator</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-    .quote-text { font-size: 1.3em; color: #333; }
+    h1 { color: #333; }
+    button, select, input { margin: 5px; padding: 8px 14px; }
+    .quote-text { font-size: 1.3em; margin: 10px 0; color: #444; }
     .quote-category { color: #666; font-style: italic; }
-    button, select { margin: 5px; padding: 8px 16px; }
   </style>
 </head>
 <body>
   <h1>Dynamic Quote Generator</h1>
-  
+
+  <!-- ✅ Category filter dropdown -->
   <label for="categoryFilter"><strong>Filter by Category:</strong></label>
-  <select id="categoryFilter" onchange="filterQuotes()">
+  <select id="categoryFilter" onchange="filterQuote()">
     <option value="all">All Categories</option>
   </select>
+
+  <!-- ✅ Display quotes here -->
   <div id="quoteDisplay"></div>
+
+  <!-- Form container for adding new quotes -->
   <div id="form-container"></div>
 
+  <!-- Buttons -->
   <div style="margin-top:20px;">
     <button id="newQuote">Show New Quote</button>
     <button id="add-btn">Add New Quote</button>
@@ -30,4 +37,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
