@@ -1,40 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dynamic Quote Generator with Sync</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Quote Generator</title>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-    h1 { color: #333; }
-    button, select, input { margin: 5px; padding: 8px 14px; }
-    .quote-text { font-size: 1.3em; margin: 10px 0; color: #444; }
-    .quote-category { color: #666; font-style: italic; }
-    #sync-status { margin-top: 15px; font-size: 0.9em; color: #008000; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #quoteDisplay { margin: 20px 0; font-size: 1.2em; }
+    #sync-status { margin-top: 10px; font-weight: bold; }
+    button { margin: 5px; }
   </style>
 </head>
 <body>
+
   <h1>Dynamic Quote Generator</h1>
 
-  <label for="categoryFilter"><strong>Filter by Category:</strong></label>
-  <select id="categoryFilter" onchange="filterQuote()">
+  <!-- Quote Display -->
+  <div id="quoteDisplay"></div>
+
+  <!-- Category Filter -->
+  <select id="categoryFilter" onchange="filterQuotes()">
     <option value="all">All Categories</option>
   </select>
 
-  <div id="quoteDisplay"></div>
-  <div id="form-container"></div>
-
-  <div style="margin-top:20px;">
-    <button id="newQuote">Show New Quote</button>
-    <button id="add-btn">Add New Quote</button>
-    <button id="export-btn">Export Quotes</button>
+  <!-- Buttons -->
+  <div>
+    <button onclick="showRandomQuote()">Show Random Quote</button>
+    <button onclick="createAddQuoteForm()">Add New Quote</button>
+    <button onclick="exportToJsonFile()">Export Quotes</button>
+    <button onclick="syncQuotes()">Sync with Server</button>
     <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" />
   </div>
 
-  <!-- ✅ Sync controls -->
-  <div style="margin-top: 30px;">
-    <button id="sync-btn">Sync Now</button>
-    <p id="sync-status">Last sync: never</p>
-  </div>
+  <!-- Add Quote Form -->
+  <div id="addQuoteForm"></div>
+
+  <!-- Status / Notifications -->
+  <div id="sync-status"></div>
 
   <script src="script.js"></script>
 </body>
