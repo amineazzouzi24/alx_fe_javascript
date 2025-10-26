@@ -1,10 +1,8 @@
-// Initial quotes
 let quotes = JSON.parse(localStorage.getItem("quotes")) || [
   { text: "Life is what happens when you're busy making other plans.", category: "Life" },
   { text: "Success is not final, failure is not fatal.", category: "Motivation" }
 ];
 
-// Load last selected category
 let lastCategory = localStorage.getItem("lastCategory") || "all";
 
 // Display a random quote
@@ -35,11 +33,15 @@ function addQuote() {
   const category = document.getElementById("newQuoteCategory").value.trim();
   if (!text || !category) return alert("Please enter both text and category.");
 
-  quotes.push({ text, category });
+  const newQuote = { text, category };
+  quotes.push(newQuote);
   saveQuotes();
   populateCategories();
   document.getElementById("addQuoteForm").innerHTML = "";
   showRandomQuote();
+
+  // Post the new quote to server
+  postQuoteToServer(newQuote);
 }
 
 // Save quotes to local storage
@@ -98,33 +100,45 @@ function importFromJsonFile(event) {
 // Server Sync Simulation
 // =====================
 async function fetchQuotesFromServer() {
-  // Mock server using JSONPlaceholder
   const response = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=5");
   const data = await response.json();
-  // Convert server posts to quotes format
   return data.map(post => ({ text: post.title, category: "Server" }));
+}
+
+// Post new quote to server
+async function postQuoteToServer(quote) {
+  try {
+    await fetch("https://jsonplaceholder.typicode.com/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(quote)
+    });
+    showSyncStatus("Quote posted to server!", "green");
+  } catch {
+    showSyncStatus("Failed to post quote to server.", "red");
+  }
+}
+
+// Show sync status
+function showSyncStatus(message, color) {
+  const status = document.getElementById("sync-status");
+  status.textContent = message;
+  status.style.color = color;
 }
 
 // Sync quotes with server
 async function syncQuotes() {
-  const status = document.getElementById("sync-status");
-  status.textContent = "Syncing with server...";
-  status.style.color = "blue";
-
+  showSyncStatus("Syncing with server...", "blue");
   try {
     const serverQuotes = await fetchQuotesFromServer();
 
-    // Simple conflict resolution: server quotes overwrite local "Server" quotes
+    // Conflict resolution: overwrite local "Server" quotes
     quotes = quotes.filter(q => q.category !== "Server").concat(serverQuotes);
-
     saveQuotes();
     populateCategories();
-
-    status.textContent = "Quotes synced with server!";
-    status.style.color = "green";
-  } catch (err) {
-    status.textContent = "Failed to sync quotes with server.";
-    status.style.color = "red";
+    showSyncStatus("Quotes synced with server!", "green");
+  } catch {
+    showSyncStatus("Failed to sync quotes with server.", "red");
   }
 }
 
