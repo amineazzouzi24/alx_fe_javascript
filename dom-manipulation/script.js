@@ -1,18 +1,25 @@
-// Mock server URL (you can replace with a real endpoint)
-const MOCK_API_URL = "https://mockapi.io/projects/YOUR_PROJECT_ID/quotes";
-
-// Initialize quotes array
+// -------------------------
+// INITIAL DATA & SETTINGS
+// -------------------------
 let quotes = JSON.parse(localStorage.getItem('quotes')) || [
   { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
   { text: "Life is what happens when you're busy making other plans.", category: "Life" },
 ];
 
-// Load last selected category
 let selectedCategory = localStorage.getItem('selectedCategory') || 'all';
 
-// UI notifications
+// -------------------------
+// NOTIFICATIONS
+// -------------------------
 function showNotification(message) {
-  alert(message); // Simple alert; you can replace with fancier UI
+  const notification = document.getElementById('notification');
+  if (notification) {
+    notification.textContent = message;
+    notification.style.display = 'block';
+    setTimeout(() => notification.style.display = 'none', 4000);
+  } else {
+    alert(message);
+  }
 }
 
 // -------------------------
@@ -79,7 +86,6 @@ function addQuote() {
   textInput.value = '';
   categoryInput.value = '';
 
-  // Post to server
   postQuoteToServer(newQuote);
 }
 
@@ -123,29 +129,29 @@ function importFromJsonFile(event) {
 }
 
 // -------------------------
-// SERVER SYNC
+// SERVER SYNC (JSONPlaceholder)
 // -------------------------
+const MOCK_API_URL = "https://jsonplaceholder.typicode.com/posts";
 
-// Fetch all quotes from server
 async function fetchQuotesFromServer() {
   try {
     const res = await fetch(MOCK_API_URL);
     if (!res.ok) throw new Error('Failed to fetch quotes');
-    const serverQuotes = await res.json();
-    return serverQuotes;
+    const data = await res.json();
+    // Map server posts to local quote format
+    return data.map(item => ({ text: item.title, category: 'Server' }));
   } catch (err) {
     console.error(err);
     return [];
   }
 }
 
-// Post a new quote to server
 async function postQuoteToServer(quote) {
   try {
     const res = await fetch(MOCK_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(quote)
+      body: JSON.stringify({ title: quote.text, body: quote.category })
     });
     if (!res.ok) throw new Error('Failed to post quote');
     showNotification('Quote synced to server!');
@@ -155,11 +161,9 @@ async function postQuoteToServer(quote) {
   }
 }
 
-// Sync local quotes with server periodically
 async function syncQuotes() {
   const serverQuotes = await fetchQuotesFromServer();
 
-  // Merge server quotes with local quotes
   let newQuotesCount = 0;
   serverQuotes.forEach(sq => {
     const exists = quotes.some(lq => lq.text === sq.text && lq.category === sq.category);
@@ -177,13 +181,15 @@ async function syncQuotes() {
   }
 }
 
-// Start periodic sync every 60 seconds
+// Periodically sync every 60 seconds
 setInterval(syncQuotes, 60000);
 
 // -------------------------
 // INITIALIZE APP
 // -------------------------
 document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+document.getElementById('categoryFilter').addEventListener('change', filterQuotes);
+
 createAddQuoteForm();
 populateCategories();
 showRandomQuote();
