@@ -203,9 +203,7 @@ async function syncQuotes() {
     saveQuotes();
     populateCategories();
     showRandomQuote();
-    let msg = `${added} new quote(s) fetched from server.`;
-    if (skipped > 0) msg += ` Skipped ${skipped} duplicate(s).`;
-    showNotification(msg);
+    showNotification("Quotes synced with server!"); // ✅ Updated message
   }
 }
 
