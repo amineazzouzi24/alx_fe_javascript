@@ -71,6 +71,38 @@ function saveQuotes() {
   localStorage.setItem('quotes', JSON.stringify(quotes));
 }
 
+// ======= Export Quotes to JSON File =======
+function exportToJsonFile() {
+  const blob = new Blob([JSON.stringify(quotes, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'quotes.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ======= Import Quotes from JSON File =======
+function importFromJsonFile(event) {
+  const fileReader = new FileReader();
+  fileReader.onload = function(event) {
+    try {
+      const importedQuotes = JSON.parse(event.target.result);
+      if (!Array.isArray(importedQuotes)) throw new Error("Invalid JSON format");
+      quotes.push(...importedQuotes);
+      saveQuotes();
+      populateCategories();
+      showRandomQuote();
+      notifyUser('Quotes imported successfully!');
+    } catch (err) {
+      alert('Failed to import quotes: ' + err.message);
+    }
+  };
+  fileReader.readAsText(event.target.files[0]);
+}
+
 // ======= Mock Server Sync =======
 function syncQuotes() {
   fetch('https://jsonplaceholder.typicode.com/posts', {
